@@ -591,19 +591,25 @@
       tanggalDistribusi: tanggalDistribusi.value,
       keterangan: keterangan.value.trim(),
     };
+    const isEdit = !!editId.value;
+    const editingId = editId.value;
+
+    // Tutup modal duluan (optimistic UI) — jangan tunggu konfirmasi
+    // server Firestore selesai, karena itu bisa lama kalau koneksi lambat.
+    // Data sudah langsung terlihat di tabel lewat onSnapshot (cache lokal).
+    closeModal();
+    submitBtn.disabled = false;
+
     try{
-      if(editId.value){
-        lastAddedId = editId.value;
-        await updateEntry(editId.value, data);
+      if(isEdit){
+        lastAddedId = editingId;
+        await updateEntry(editingId, data);
       }else{
         lastAddedId = await addEntry(data);
       }
-      closeModal();
     }catch(err){
       console.error(err);
       alert('Gagal menyimpan data. Cek koneksi internet atau konfigurasi Firebase kamu (lihat README.md).');
-    }finally{
-      submitBtn.disabled = false;
     }
   });
 
