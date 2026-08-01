@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register Surat Masuk — Sekretariat Daerah</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E2A3D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Register Surat">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --paper:#F6F2E9;
+    --surface:#FFFFFF;
+    --ink:#1E2A3D;
+    --ink-soft:#5B6478;
+    --rule:#DDD5C0;
+    --rule-strong:#C9BFA0;
+    --gold:#A9812E;
+    --gold-dark:#8B6A22;
+    --gold-bg:#F3E9D2;
+    --font-display:'Lora',serif;
+    --font-body:'IBM Plex Sans',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
+
+  .letterhead{
+    border-top:3px double var(--ink);
+    border-bottom:1px solid var(--rule-strong);
+    padding:22px 4px 18px;
+    margin-bottom:24px;
+    text-align:center;
+  }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .letterhead h1{
+    margin:0 0 8px;
+    font-family:var(--font-display);
+    font-weight:700;
+    font-size:clamp(24px,4vw,34px);
+    letter-spacing:.01em;
+  }
+  .subtitle{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:14px;
+    font-style:italic;
+    font-family:var(--font-display);
+  }
+
+  .conn-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-top:10px;padding:4px 12px;border-radius:20px;
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;
+    border:1px solid var(--rule-strong);color:var(--ink-soft);
+  }
+  .conn-dot{width:7px;height:7px;border-radius:50%;background:#9AA0AC;}
+  .conn-badge.online .conn-dot{background:#2E6B4F;}
+  .conn-badge.offline .conn-dot{background:#A63D40;}
+
+  .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+  .stat-card{
+    flex:1;min-width:160px;
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:14px 16px;
+    text-align:center;
+  }
+  .stat-card .stat-num{
+    display:block;
+    font-family:var(--font-mono);
+    font-size:26px;
+    font-weight:500;
+    line-height:1.1;
+  }
+  .stat-card .stat-label{
+    display:block;
+    margin-top:4px;
+    font-size:12px;
+    color:var(--ink-soft);
+    letter-spacing:.03em;
+  }
+  .stat-card.highlight{background:var(--gold-bg);border-color:var(--gold);}
+  .stat-card.highlight .stat-num{color:var(--gold-dark);}
+
+  .toolbar{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    padding:14px;
+    margin-bottom:18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .toolbar-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .toolbar-row.toolbar-actions{justify-content:flex-end;}
+  .toolbar input[type="search"]{flex:2;min-width:200px;}
+  .toolbar input[type="date"]{flex:1;min-width:130px;}
+  .toolbar input{
+    font-family:var(--font-body);
+    font-size:13.5px;
+    padding:9px 10px;
+    border:1px solid var(--rule-strong);
+    border-radius:5px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .date-sep{align-self:center;color:var(--ink-soft);}
+
+  .btn{
+    font-family:var(--font-body);
+    font-weight:600;
+    font-size:13.5px;
+    padding:9px 16px;
+    border-radius:5px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--gold);color:#fff;}
+  .btn-primary:hover{background:var(--gold-dark);}
+  .btn-ghost{background:transparent;border-color:var(--rule-strong);color:var(--ink);}
+  .btn-ghost:hover{background:var(--paper);}
+  .icon-btn{
+    background:none;border:none;font-size:18px;cursor:pointer;color:var(--ink-soft);
+    line-height:1;padding:4px;
+  }
+  .link-btn{
+    background:none;border:none;color:var(--ink-soft);
+    font-size:12px;text-decoration:underline;cursor:pointer;font-family:var(--font-body);
+  }
+  .link-btn:hover{color:var(--gold-dark);}
+
+  .table-wrap{
+    background:var(--surface);
+    border:1px solid var(--rule);
+    border-radius:8px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  table{border-collapse:collapse;width:100%;min-width:1150px;}
+  thead th{
+    position:sticky;top:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    text-align:left;
+    padding:11px 12px;
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:10px 12px;
+    border-bottom:1px solid var(--rule);
+    font-size:13px;
+    vertical-align:top;
+    max-width:220px;
+  }
+  tbody tr:nth-child(even){background:#FBF9F4;}
+  tbody tr:hover{background:var(--gold-bg);}
+  td.no-col{font-family:var(--font-mono);color:var(--ink-soft);}
+  td.nomor-col{font-family:var(--font-mono);white-space:nowrap;}
+  td.date-col{font-family:var(--font-mono);white-space:nowrap;font-size:12.5px;}
+  td.aksi-col{white-space:nowrap;}
+  .row-action{
+    background:none;border:none;cursor:pointer;
+    font-size:12px;color:var(--ink-soft);text-decoration:underline;
+    margin-right:8px;font-family:var(--font-body);
+  }
+  .row-action:hover{color:var(--gold-dark);}
+  .row-action.danger:hover{color:#A63D40;}
+  .empty-state{
+    text-align:center;padding:40px 20px;color:var(--ink-soft);font-style:italic;
+    font-family:var(--font-display);
+  }
+
+  @keyframes rowIn{
+    from{background:var(--gold-bg);}
+    to{background:transparent;}
+  }
+  tr.row-new{animation:rowIn 1.1s ease-out;}
+
+  .app-footer{
+    margin-top:16px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:var(--ink-soft);flex-wrap:wrap;gap:8px;
+  }
+  .app-footer .shared-note{color:#8B6A22;}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(30,42,61,.45);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:30px 16px;overflow-y:auto;z-index:50;
+  }
+  .modal-overlay[hidden]{display:none;}
+  .modal{
+    background:var(--surface);
+    border-radius:10px;
+    width:100%;max-width:640px;
+    padding:22px 24px 24px;
+    box-shadow:0 12px 40px rgba(30,42,61,.25);
+  }
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .modal-head h2{margin:0;font-family:var(--font-display);font-size:20px;font-weight:600;}
+
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--ink-soft);}
+  label.full{margin-bottom:12px;}
+  label input,label textarea{
+    font-family:var(--font-body);font-size:13.5px;font-weight:400;color:var(--ink);
+    padding:9px 10px;border:1px solid var(--rule-strong);border-radius:5px;background:var(--paper);
+    resize:vertical;
+  }
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
+
+  :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  @media (max-width:640px){
+    .form-grid{grid-template-columns:1fr;}
+    .toolbar-row.toolbar-actions{justify-content:stretch;}
+    .toolbar-row.toolbar-actions .btn{flex:1;}
+    .modal{padding:18px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="letterhead">
+    <p class="eyebrow">Sekretariat Daerah</p>
+    <h1>Register Surat Masuk</h1>
+    <p class="subtitle">Buku agenda harian — diterima, didisposisikan, didistribusikan.</p>
+    <span class="conn-badge" id="connBadge"><span class="conn-dot"></span><span id="connLabel">Menghubungkan…</span></span>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="toolbar">
+    <div class="toolbar-row">
+      <input type="search" id="searchInput" placeholder="Cari nomor surat, penerima, pengirim, perihal…">
+      <input type="date" id="filterFrom" title="Dari tanggal diterima">
+      <span class="date-sep">–</span>
+      <input type="date" id="filterTo" title="Sampai tanggal diterima">
+    </div>
+    <div class="toolbar-row toolbar-actions">
+      <button id="exportBtn" class="btn btn-ghost" type="button">⬇ Export ke Excel</button>
+      <button id="addBtn" class="btn btn-primary" type="button">+ Catat Surat</button>
+    </div>
+  </section>
+
+  <section class="table-wrap">
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Penerima Surat</th>
+          <th>Nomor Surat</th>
+          <th>Tgl Diterima</th>
+          <th>Pengirim</th>
+          <th>Perihal</th>
+          <th>Isi Disposisi</th>
+          <th>Tujuan</th>
+          <th>Tgl Distribusi</th>
+          <th>Keterangan</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <p id="loadingState" class="empty-state">Memuat data…</p>
+    <p id="emptyState" class="empty-state" hidden>Belum ada surat tercatat. Klik &ldquo;Catat Surat&rdquo; untuk mulai.</p>
+  </section>
+
+  <footer class="app-footer">
+    <span class="shared-note">Data pada register ini <strong>dibagikan</strong> secara real-time — semua orang yang membuka link ini melihat &amp; bisa mengubah data yang sama.</span>
+    <button id="resetBtn" class="link-btn" type="button">Hapus semua data</button>
+  </footer>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h2 id="modalTitle">Catat Surat Baru</h2>
+      <button id="closeModalBtn" class="icon-btn" type="button" aria-label="Tutup">✕</button>
+    </div>
+
+    <form id="entryForm">
+      <input type="hidden" id="editId" value="">
+
+      <div class="form-grid">
+        <label>Penerima Surat
+          <input type="text" id="penerimaSurat" placeholder="Yth. Sekretaris Daerah">
+        </label>
+        <label>Nomor Surat
+          <input type="text" id="nomorSurat" required>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label>Tanggal Diterima
+          <input type="date" id="tanggalDiterima" required>
+        </label>
+        <label>Pengirim
+          <input type="text" id="pengirim">
+        </label>
+      </div>
+
+      <label class="full">Perihal
+        <input type="text" id="perihal" required>
+      </label>
+
+      <label class="full">Isi Disposisi
+        <textarea id="isiDisposisi" rows="2" placeholder="Catatan/instruksi disposisi dari pimpinan"></textarea>
+      </label>
+
+      <div class="form-grid">
+        <label>Tujuan
+          <input type="text" id="tujuan" placeholder="Unit/pejabat tujuan disposisi">
+        </label>
+        <label>Tanggal Distribusi
+          <input type="date" id="tanggalDistribusi">
+        </label>
+      </div>
+
+      <label class="full">Keterangan
+        <textarea id="keterangan" rows="2"></textarea>
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" id="cancelBtn" class="btn btn-ghost">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Firebase (compat SDK - versi paling gampang dipakai) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+
+<script>
+(function(){
+  const COLLECTION = 'surat_masuk';
+  let entries = [];
+  let lastAddedId = null;
+
+  // ---------- Elements ----------
+  const statsEl = document.getElementById('stats');
+  const tableBody = document.getElementById('tableBody');
+  const emptyState = document.getElementById('emptyState');
+  const loadingState = document.getElementById('loadingState');
+  const connBadge = document.getElementById('connBadge');
+  const connLabel = document.getElementById('connLabel');
+
+  const searchInput = document.getElementById('searchInput');
+  const filterFrom = document.getElementById('filterFrom');
+  const filterTo = document.getElementById('filterTo');
+
+  const addBtn = document.getElementById('addBtn');
+  const exportBtn = document.getElementById('exportBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const entryForm = document.getElementById('entryForm');
+  const editId = document.getElementById('editId');
+
+  const penerimaSurat = document.getElementById('penerimaSurat');
+  const nomorSurat = document.getElementById('nomorSurat');
+  const tanggalDiterima = document.getElementById('tanggalDiterima');
+  const pengirim = document.getElementById('pengirim');
+  const perihal = document.getElementById('perihal');
+  const isiDisposisi = document.getElementById('isiDisposisi');
+  const tujuan = document.getElementById('tujuan');
+  const tanggalDistribusi = document.getElementById('tanggalDistribusi');
+  const keterangan = document.getElementById('keterangan');
+
+  // ---------- Firestore realtime ----------
+  try{
+    db.enablePersistence({synchronizeTabs:true}).catch((err)=>{
+      console.warn('Offline persistence tidak aktif:', err.code);
+    });
+  }catch(err){ console.warn(err); }
+
+  function listenEntries(){
+    db.collection(COLLECTION).onSnapshot((snapshot) => {
+      entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      loadingState.hidden = true;
+      connBadge.classList.add('online');
+      connBadge.classList.remove('offline');
+      connLabel.textContent = 'Tersambung';
+      render();
+    }, (err) => {
+      console.error(err);
+      loadingState.hidden = true;
+      connBadge.classList.add('offline');
+      connBadge.classList.remove('online');
+      connLabel.textContent = 'Gagal tersambung — cek konfigurasi Firebase';
+    });
+  }
+
+  async function addEntry(data){
+    const ref = await db.collection(COLLECTION).add({...data, createdAt: Date.now()});
+    return ref.id;
+  }
+  async function updateEntry(id, data){
+    await db.collection(COLLECTION).doc(id).update(data);
+  }
+  async function deleteEntry(id){
+    await db.collection(COLLECTION).doc(id).delete();
+  }
+
+  // ---------- Helpers ----------
+  function formatTanggal(iso){
+    if(!iso) return '—';
+    const d = new Date(iso + 'T00:00:00');
+    if(isNaN(d)) return '—';
+    const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+  }
+  function escapeHtml(str){
+    if(!str) return '';
+    return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function numberedEntries(){
+    return [...entries]
+      .sort((a,b)=>{
+        const dateA = a.tanggalDiterima || '';
+        const dateB = b.tanggalDiterima || '';
+        if(dateA !== dateB) return dateA.localeCompare(dateB);
+        return (a.createdAt||0) - (b.createdAt||0);
+      })
+      .map((e, idx) => ({...e, no: idx+1}));
+  }
+
+  function getFiltered(){
+    const search = searchInput.value.trim().toLowerCase();
+    const from = filterFrom.value;
+    const to = filterTo.value;
+
+    return numberedEntries().filter(e=>{
+      if(from && (e.tanggalDiterima||'') < from) return false;
+      if(to && (e.tanggalDiterima||'') > to) return false;
+      if(search){
+        const hay = [e.penerimaSurat,e.nomorSurat,e.pengirim,e.perihal,e.tujuan,e.keterangan].join(' ').toLowerCase();
+        if(!hay.includes(search)) return false;
+      }
+      return true;
+    }).sort((a,b)=>{
+      const dateA = a.tanggalDiterima || '';
+      const dateB = b.tanggalDiterima || '';
+      if(dateA !== dateB) return dateB.localeCompare(dateA);
+      return (b.createdAt||0) - (a.createdAt||0);
+    });
+  }
+
+  // ---------- Render ----------
+  function render(){
+    const filtered = getFiltered();
+    renderStats(filtered);
+    renderTable(filtered);
+  }
+
+  function renderStats(filtered){
+    const now = new Date();
+    const bulanIni = entries.filter(e=>{
+      if(!e.tanggalDiterima) return false;
+      const d = new Date(e.tanggalDiterima + 'T00:00:00');
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+
+    statsEl.innerHTML = `
+      <div class="stat-card"><span class="stat-num">${filtered.length}</span><span class="stat-label">Total Tercatat</span></div>
+      <div class="stat-card highlight"><span class="stat-num">${bulanIni}</span><span class="stat-label">Diterima Bulan Ini</span></div>
+    `;
+  }
+
+  function renderTable(filtered){
+    if(filtered.length === 0){
+      tableBody.innerHTML = '';
+      emptyState.hidden = false;
+      emptyState.textContent = entries.length === 0
+        ? 'Belum ada surat tercatat. Klik “Catat Surat” untuk mulai.'
+        : 'Tidak ada surat yang cocok dengan pencarian/filter ini.';
+      return;
+    }
+    emptyState.hidden = true;
+
+    tableBody.innerHTML = filtered.map(e => `
+      <tr class="${e.id === lastAddedId ? 'row-new' : ''}" data-id="${e.id}">
+        <td class="no-col">${e.no}</td>
+        <td>${escapeHtml(e.penerimaSurat)}</td>
+        <td class="nomor-col">${escapeHtml(e.nomorSurat)}</td>
+        <td class="date-col">${formatTanggal(e.tanggalDiterima)}</td>
+        <td>${escapeHtml(e.pengirim)}</td>
+        <td>${escapeHtml(e.perihal)}</td>
+        <td>${escapeHtml(e.isiDisposisi)}</td>
+        <td>${escapeHtml(e.tujuan)}</td>
+        <td class="date-col">${formatTanggal(e.tanggalDistribusi)}</td>
+        <td>${escapeHtml(e.keterangan)}</td>
+        <td class="aksi-col">
+          <button class="row-action" data-action="edit" data-id="${e.id}">Ubah</button>
+          <button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button>
+        </td>
+      </tr>
+    `).join('');
+    lastAddedId = null;
+  }
+
+  // ---------- Modal ----------
+  function openModal(entry){
+    entryForm.reset();
+    if(entry){
+      modalTitle.textContent = 'Ubah Surat';
+      editId.value = entry.id;
+      penerimaSurat.value = entry.penerimaSurat || '';
+      nomorSurat.value = entry.nomorSurat || '';
+      tanggalDiterima.value = entry.tanggalDiterima || '';
+      pengirim.value = entry.pengirim || '';
+      perihal.value = entry.perihal || '';
+      isiDisposisi.value = entry.isiDisposisi || '';
+      tujuan.value = entry.tujuan || '';
+      tanggalDistribusi.value = entry.tanggalDistribusi || '';
+      keterangan.value = entry.keterangan || '';
+    }else{
+      modalTitle.textContent = 'Catat Surat Baru';
+      editId.value = '';
+      tanggalDiterima.value = new Date().toISOString().slice(0,10);
+    }
+    modalOverlay.hidden = false;
+    penerimaSurat.focus();
+  }
+  function closeModal(){
+    modalOverlay.hidden = true;
+  }
+
+  addBtn.addEventListener('click', () => openModal(null));
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !modalOverlay.hidden) closeModal(); });
+
+  entryForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = entryForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    const data = {
+      penerimaSurat: penerimaSurat.value.trim(),
+      nomorSurat: nomorSurat.value.trim(),
+      tanggalDiterima: tanggalDiterima.value,
+      pengirim: pengirim.value.trim(),
+      perihal: perihal.value.trim(),
+      isiDisposisi: isiDisposisi.value.trim(),
+      tujuan: tujuan.value.trim(),
+      tanggalDistribusi: tanggalDistribusi.value,
+      keterangan: keterangan.value.trim(),
+    };
+    try{
+      if(editId.value){
+        lastAddedId = editId.value;
+        await updateEntry(editId.value, data);
+      }else{
+        lastAddedId = await addEntry(data);
+      }
+      closeModal();
+    }catch(err){
+      console.error(err);
+      alert('Gagal menyimpan data. Cek koneksi internet atau konfigurasi Firebase kamu (lihat README.md).');
+    }finally{
+      submitBtn.disabled = false;
+    }
+  });
+
+  // ---------- Row actions ----------
+  tableBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const entry = entries.find(x => x.id === id);
+    if(!entry) return;
+
+    if(btn.dataset.action === 'edit'){
+      openModal(entry);
+    }else if(btn.dataset.action === 'delete'){
+      if(confirm(`Hapus surat nomor "${entry.nomorSurat}"? Tindakan ini tidak bisa dibatalkan.`)){
+        try{ await deleteEntry(id); }
+        catch(err){ console.error(err); alert('Gagal menghapus data. Cek koneksi internet.'); }
+      }
+    }
+  });
+
+  // ---------- Filters ----------
+  [searchInput, filterFrom, filterTo].forEach(el => {
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+
+  // ---------- Export ----------
+  exportBtn.addEventListener('click', () => {
+    const data = getFiltered();
+    if(data.length === 0){
+      alert('Tidak ada data untuk diexport. Ubah/hapus filter jika perlu.');
+      return;
+    }
+    const sorted = [...data].sort((a,b) => a.no - b.no);
+    const rows = sorted.map(e => ({
+      'No': e.no,
+      'Penerima Surat': e.penerimaSurat,
+      'Nomor Surat': e.nomorSurat,
+      'Tanggal Diterima': formatTanggal(e.tanggalDiterima),
+      'Pengirim': e.pengirim,
+      'Perihal': e.perihal,
+      'Isi Disposisi': e.isiDisposisi,
+      'Tujuan': e.tujuan,
+      'Tanggal Distribusi': formatTanggal(e.tanggalDistribusi),
+      'Keterangan': e.keterangan,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    ws['!cols'] = [{wch:5},{wch:22},{wch:16},{wch:15},{wch:20},{wch:28},{wch:30},{wch:20},{wch:15},{wch:24}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Register Surat Masuk');
+    const today = new Date();
+    const fname = `Register-Surat-Masuk-Setda-${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}.xlsx`;
+    XLSX.writeFile(wb, fname);
+  });
+
+  // ---------- Reset ----------
+  resetBtn.addEventListener('click', async () => {
+    if(!confirm('Hapus SEMUA data surat (untuk semua orang)? Tindakan ini tidak bisa dibatalkan.')) return;
+    try{
+      const snapshot = await db.collection(COLLECTION).get();
+      const batch = db.batch();
+      snapshot.docs.forEach(doc => batch.delete(doc.ref));
+      await batch.commit();
+    }catch(err){
+      console.error(err);
+      alert('Gagal menghapus data. Cek koneksi internet.');
+    }
+  });
+
+  // ---------- Init ----------
+  listenEntries();
+
+  // ---------- Service worker (PWA) ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js').catch(console.error);
+    });
+  }
+})();
+</script>
+</body>
+</html>
