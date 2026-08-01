@@ -216,6 +216,44 @@
   }
   .app-footer .shared-note{color:#8B6A22;}
 
+  .tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;border-bottom:1px solid var(--rule-strong);}
+  .tab-btn{
+    font-family:var(--font-body);font-weight:600;font-size:13.5px;
+    padding:10px 16px;border:none;background:none;cursor:pointer;
+    color:var(--ink-soft);border-bottom:2px solid transparent;margin-bottom:-1px;
+  }
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--gold-dark);border-bottom-color:var(--gold);}
+
+  .toolbar select{
+    font-family:var(--font-body);font-size:13.5px;padding:9px 10px;
+    border:1px solid var(--rule-strong);border-radius:5px;
+    background:var(--paper);color:var(--ink);
+  }
+
+  .status-badge{
+    display:inline-block;padding:3px 10px;border-radius:20px;
+    font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;
+    text-transform:uppercase;white-space:nowrap;
+  }
+  .status-badge.menunggu{background:var(--gold-bg);color:var(--gold-dark);}
+  .status-badge.disetujui{background:#E1EEE6;color:#2E6B4F;}
+  .status-badge.ditolak{background:#F5E2E2;color:#A63D40;}
+
+  .gcal-wrap{
+    background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+    overflow:hidden;margin-bottom:18px;
+  }
+  .gcal-wrap iframe{display:block;width:100%;border:0;}
+  .gcal-note{
+    padding:10px 14px;font-size:12px;color:var(--ink-soft);
+    border-top:1px solid var(--rule);background:var(--paper);
+  }
+  .section-title{
+    font-family:var(--font-display);font-size:16px;font-weight:600;
+    margin:0 0 10px;color:var(--ink);
+  }
+
   .modal-overlay{
     position:fixed;inset:0;background:rgba(30,42,61,.45);
     display:flex;align-items:flex-start;justify-content:center;
@@ -265,48 +303,125 @@
     <span class="conn-badge" id="connBadge"><span class="conn-dot"></span><span id="connLabel">Menghubungkan…</span></span>
   </header>
 
-  <section class="stats" id="stats"></section>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn active" data-view="surat" type="button">Register Surat Masuk</button>
+    <button class="tab-btn" data-view="jadwal" type="button">Permintaan Jadwal</button>
+    <button class="tab-btn" data-view="agenda" type="button">Agenda</button>
+  </nav>
 
-  <section class="toolbar">
-    <div class="toolbar-row">
-      <input type="search" id="searchInput" placeholder="Cari nomor surat, penerima, pengirim, perihal…">
-      <input type="date" id="filterFrom" title="Dari tanggal diterima">
-      <span class="date-sep">–</span>
-      <input type="date" id="filterTo" title="Sampai tanggal diterima">
+  <div class="view" id="viewSurat">
+    <section class="stats" id="stats"></section>
+
+    <section class="toolbar">
+      <div class="toolbar-row">
+        <input type="search" id="searchInput" placeholder="Cari nomor surat, penerima, pengirim, perihal…">
+        <input type="date" id="filterFrom" title="Dari tanggal diterima">
+        <span class="date-sep">–</span>
+        <input type="date" id="filterTo" title="Sampai tanggal diterima">
+      </div>
+      <div class="toolbar-row toolbar-actions">
+        <button id="exportBtn" class="btn btn-ghost" type="button">⬇ Export ke Excel</button>
+        <button id="addBtn" class="btn btn-primary" type="button">+ Catat Surat</button>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Penerima Surat</th>
+            <th>Nomor Surat</th>
+            <th>Tgl Diterima</th>
+            <th>Pengirim</th>
+            <th>Perihal</th>
+            <th>Isi Disposisi</th>
+            <th>Tujuan</th>
+            <th>Tgl Distribusi</th>
+            <th>Keterangan</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <p id="loadingState" class="empty-state">Memuat data…</p>
+      <p id="emptyState" class="empty-state" hidden>Belum ada surat tercatat. Klik &ldquo;Catat Surat&rdquo; untuk mulai.</p>
+    </section>
+
+    <footer class="app-footer">
+      <span class="shared-note">Data pada register ini <strong>dibagikan</strong> secara real-time — semua orang yang membuka link ini melihat &amp; bisa mengubah data yang sama.</span>
+      <button id="resetBtn" class="link-btn" type="button">Hapus semua data</button>
+    </footer>
+  </div>
+
+  <div class="view" id="viewJadwal" hidden>
+    <section class="stats" id="jadwalStats"></section>
+
+    <section class="toolbar">
+      <div class="toolbar-row">
+        <input type="search" id="jadwalSearchInput" placeholder="Cari koordinator, OPD, perihal…">
+        <select id="jadwalStatusFilter">
+          <option value="">Semua status</option>
+          <option value="menunggu">Menunggu</option>
+          <option value="disetujui">Disetujui</option>
+          <option value="ditolak">Ditolak</option>
+        </select>
+      </div>
+      <div class="toolbar-row toolbar-actions">
+        <button id="jadwalAddBtn" class="btn btn-primary" type="button">+ Ajukan Jadwal</button>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <table id="jadwalTable">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Koordinator</th>
+            <th>OPD</th>
+            <th>Waktu</th>
+            <th>Perihal</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="jadwalTableBody"></tbody>
+      </table>
+      <p id="jadwalLoadingState" class="empty-state">Memuat data…</p>
+      <p id="jadwalEmptyState" class="empty-state" hidden>Belum ada permintaan jadwal. Klik &ldquo;Ajukan Jadwal&rdquo; untuk mulai.</p>
+    </section>
+
+    <footer class="app-footer">
+      <span class="shared-note">Permintaan yang <strong>disetujui</strong> otomatis masuk ke tab Agenda.</span>
+    </footer>
+  </div>
+
+  <div class="view" id="viewAgenda" hidden>
+    <p class="section-title">Kalender Google</p>
+    <div class="gcal-wrap">
+      <iframe id="gcalFrame" src="https://calendar.google.com/calendar/embed?src=ajudansekdakotablitar10%40gmail.com&ctz=Asia%2FJakarta&mode=AGENDA" height="500" frameborder="0" scrolling="no"></iframe>
+      <p class="gcal-note">Kalender ini tampilan saja (view-only), bersumber dari <code>ajudansekdakotablitar10@gmail.com</code>. Kalau kalender belum muncul, pastikan kalender tersebut sudah diset publik lewat Google Calendar → Setelan → pilih kalender ini → Izin akses → centang &ldquo;Buat tersedia untuk publik&rdquo;.</p>
     </div>
-    <div class="toolbar-row toolbar-actions">
-      <button id="exportBtn" class="btn btn-ghost" type="button">⬇ Export ke Excel</button>
-      <button id="addBtn" class="btn btn-primary" type="button">+ Catat Surat</button>
-    </div>
-  </section>
 
-  <section class="table-wrap">
-    <table id="dataTable">
-      <thead>
-        <tr>
-          <th>No</th>
-          <th>Penerima Surat</th>
-          <th>Nomor Surat</th>
-          <th>Tgl Diterima</th>
-          <th>Pengirim</th>
-          <th>Perihal</th>
-          <th>Isi Disposisi</th>
-          <th>Tujuan</th>
-          <th>Tgl Distribusi</th>
-          <th>Keterangan</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <p id="loadingState" class="empty-state">Memuat data…</p>
-    <p id="emptyState" class="empty-state" hidden>Belum ada surat tercatat. Klik &ldquo;Catat Surat&rdquo; untuk mulai.</p>
-  </section>
-
-  <footer class="app-footer">
-    <span class="shared-note">Data pada register ini <strong>dibagikan</strong> secara real-time — semua orang yang membuka link ini melihat &amp; bisa mengubah data yang sama.</span>
-    <button id="resetBtn" class="link-btn" type="button">Hapus semua data</button>
-  </footer>
+    <p class="section-title">Daftar Agenda (dari Permintaan Jadwal yang disetujui)</p>
+    <section class="table-wrap">
+      <table id="agendaTable">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Koordinator</th>
+            <th>OPD</th>
+            <th>Waktu</th>
+            <th>Perihal</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="agendaTableBody"></tbody>
+      </table>
+      <p id="agendaLoadingState" class="empty-state">Memuat data…</p>
+      <p id="agendaEmptyState" class="empty-state" hidden>Belum ada agenda. Setujui permintaan jadwal untuk menambahkannya di sini.</p>
+    </section>
+  </div>
 </div>
 
 <div class="modal-overlay" id="modalOverlay" hidden>
@@ -429,6 +544,47 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="jadwalModalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="jadwalModalTitle">
+    <div class="modal-head">
+      <h2 id="jadwalModalTitle">Ajukan Jadwal Baru</h2>
+      <button id="jadwalCloseModalBtn" class="icon-btn" type="button" aria-label="Tutup">✕</button>
+    </div>
+
+    <form id="jadwalForm">
+      <input type="hidden" id="jadwalEditId" value="">
+
+      <div class="form-grid">
+        <label>Koordinator
+          <select id="koordinator" required>
+            <option value="">Pilih koordinator</option>
+            <option value="Cindy">Cindy</option>
+            <option value="Firman">Firman</option>
+            <option value="Rifan">Rifan</option>
+          </select>
+        </label>
+        <label>OPD
+          <input type="text" id="jadwalOpd" list="opdList" autocomplete="off" required>
+        </label>
+      </div>
+
+      <div class="form-grid">
+        <label>Waktu
+          <input type="datetime-local" id="waktu" required>
+        </label>
+        <label>Perihal
+          <input type="text" id="jadwalPerihal" required>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="jadwalCancelBtn" class="btn btn-ghost">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Firebase (compat SDK - versi paling gampang dipakai) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -473,6 +629,53 @@
   const tanggalDistribusi = document.getElementById('tanggalDistribusi');
   const keterangan = document.getElementById('keterangan');
 
+  // ---------- Tabs ----------
+  const viewSurat = document.getElementById('viewSurat');
+  const viewJadwal = document.getElementById('viewJadwal');
+  const viewAgenda = document.getElementById('viewAgenda');
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.dataset.view;
+      viewSurat.hidden = view !== 'surat';
+      viewJadwal.hidden = view !== 'jadwal';
+      viewAgenda.hidden = view !== 'agenda';
+    });
+  });
+
+  // ---------- Elemen: Permintaan Jadwal ----------
+  const JADWAL_COLLECTION = 'permintaan_jadwal';
+  let jadwalEntries = [];
+  let lastAddedJadwalId = null;
+
+  const jadwalStatsEl = document.getElementById('jadwalStats');
+  const jadwalTableBody = document.getElementById('jadwalTableBody');
+  const jadwalEmptyState = document.getElementById('jadwalEmptyState');
+  const jadwalLoadingState = document.getElementById('jadwalLoadingState');
+  const jadwalSearchInput = document.getElementById('jadwalSearchInput');
+  const jadwalStatusFilter = document.getElementById('jadwalStatusFilter');
+  const jadwalAddBtn = document.getElementById('jadwalAddBtn');
+
+  const jadwalModalOverlay = document.getElementById('jadwalModalOverlay');
+  const jadwalModalTitle = document.getElementById('jadwalModalTitle');
+  const jadwalCloseModalBtn = document.getElementById('jadwalCloseModalBtn');
+  const jadwalCancelBtn = document.getElementById('jadwalCancelBtn');
+  const jadwalForm = document.getElementById('jadwalForm');
+  const jadwalEditId = document.getElementById('jadwalEditId');
+  const koordinator = document.getElementById('koordinator');
+  const jadwalOpd = document.getElementById('jadwalOpd');
+  const waktu = document.getElementById('waktu');
+  const jadwalPerihal = document.getElementById('jadwalPerihal');
+
+  // ---------- Elemen: Agenda ----------
+  const AGENDA_COLLECTION = 'agenda';
+  let agendaEntries = [];
+
+  const agendaTableBody = document.getElementById('agendaTableBody');
+  const agendaEmptyState = document.getElementById('agendaEmptyState');
+  const agendaLoadingState = document.getElementById('agendaLoadingState');
+
   // ---------- Firestore realtime ----------
   try{
     db.enablePersistence({synchronizeTabs:true}).catch((err)=>{
@@ -508,6 +711,57 @@
     await db.collection(COLLECTION).doc(id).delete();
   }
 
+  // ---------- Firestore realtime: Permintaan Jadwal ----------
+  function listenJadwal(){
+    db.collection(JADWAL_COLLECTION).onSnapshot((snapshot) => {
+      jadwalEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      jadwalLoadingState.hidden = true;
+      renderJadwal();
+    }, (err) => {
+      console.error(err);
+      jadwalLoadingState.hidden = true;
+    });
+  }
+  async function addJadwal(data){
+    const ref = await db.collection(JADWAL_COLLECTION).add({...data, status:'menunggu', createdAt: Date.now()});
+    return ref.id;
+  }
+  async function updateJadwal(id, data){
+    await db.collection(JADWAL_COLLECTION).doc(id).update(data);
+  }
+  async function deleteJadwal(id){
+    await db.collection(JADWAL_COLLECTION).doc(id).delete();
+  }
+  async function approveJadwal(entry){
+    await db.collection(JADWAL_COLLECTION).doc(entry.id).update({status:'disetujui'});
+    await db.collection(AGENDA_COLLECTION).add({
+      koordinator: entry.koordinator,
+      opd: entry.opd,
+      waktu: entry.waktu,
+      perihal: entry.perihal,
+      jadwalId: entry.id,
+      createdAt: Date.now()
+    });
+  }
+  async function rejectJadwal(id){
+    await db.collection(JADWAL_COLLECTION).doc(id).update({status:'ditolak'});
+  }
+
+  // ---------- Firestore realtime: Agenda ----------
+  function listenAgenda(){
+    db.collection(AGENDA_COLLECTION).onSnapshot((snapshot) => {
+      agendaEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      agendaLoadingState.hidden = true;
+      renderAgenda();
+    }, (err) => {
+      console.error(err);
+      agendaLoadingState.hidden = true;
+    });
+  }
+  async function deleteAgenda(id){
+    await db.collection(AGENDA_COLLECTION).doc(id).delete();
+  }
+
   // ---------- Helpers ----------
   function formatTanggal(iso){
     if(!iso) return '—';
@@ -519,6 +773,20 @@
   function escapeHtml(str){
     if(!str) return '';
     return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function formatWaktu(val){
+    if(!val) return '—';
+    const d = new Date(val);
+    if(isNaN(d)) return '—';
+    const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const jam = String(d.getHours()).padStart(2,'0');
+    const menit = String(d.getMinutes()).padStart(2,'0');
+    return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}, ${jam}:${menit}`;
+  }
+  function statusBadge(status){
+    const label = status === 'disetujui' ? 'Disetujui' : status === 'ditolak' ? 'Ditolak' : 'Menunggu';
+    const cls = status === 'disetujui' ? 'disetujui' : status === 'ditolak' ? 'ditolak' : 'menunggu';
+    return `<span class="status-badge ${cls}">${label}</span>`;
   }
 
   function numberedEntries(){
@@ -604,6 +872,104 @@
       </tr>
     `).join('');
     lastAddedId = null;
+  }
+
+  // ---------- Render: Permintaan Jadwal ----------
+  function numberedJadwal(){
+    return [...jadwalEntries]
+      .sort((a,b)=>{
+        const wa = a.waktu || '';
+        const wb = b.waktu || '';
+        if(wa !== wb) return wa.localeCompare(wb);
+        return (a.createdAt||0) - (b.createdAt||0);
+      })
+      .map((e, idx) => ({...e, no: idx+1}));
+  }
+  function getFilteredJadwal(){
+    const search = jadwalSearchInput.value.trim().toLowerCase();
+    const status = jadwalStatusFilter.value;
+    return numberedJadwal().filter(e=>{
+      if(status && e.status !== status) return false;
+      if(search){
+        const hay = [e.koordinator,e.opd,e.perihal].join(' ').toLowerCase();
+        if(!hay.includes(search)) return false;
+      }
+      return true;
+    }).sort((a,b)=>{
+      const wa = a.waktu || '';
+      const wb = b.waktu || '';
+      if(wa !== wb) return wb.localeCompare(wa);
+      return (b.createdAt||0) - (a.createdAt||0);
+    });
+  }
+  function renderJadwal(){
+    const filtered = getFilteredJadwal();
+    const menunggu = jadwalEntries.filter(e=>e.status === 'menunggu' || !e.status).length;
+    jadwalStatsEl.innerHTML = `
+      <div class="stat-card"><span class="stat-num">${jadwalEntries.length}</span><span class="stat-label">Total Permintaan</span></div>
+      <div class="stat-card highlight"><span class="stat-num">${menunggu}</span><span class="stat-label">Menunggu Persetujuan</span></div>
+    `;
+    if(filtered.length === 0){
+      jadwalTableBody.innerHTML = '';
+      jadwalEmptyState.hidden = false;
+      jadwalEmptyState.textContent = jadwalEntries.length === 0
+        ? 'Belum ada permintaan jadwal. Klik “Ajukan Jadwal” untuk mulai.'
+        : 'Tidak ada permintaan yang cocok dengan pencarian/filter ini.';
+      return;
+    }
+    jadwalEmptyState.hidden = true;
+    jadwalTableBody.innerHTML = filtered.map(e => {
+      const status = e.status || 'menunggu';
+      const actions = status === 'menunggu'
+        ? `<button class="row-action" data-action="approve" data-id="${e.id}">Setujui</button>
+           <button class="row-action danger" data-action="reject" data-id="${e.id}">Tolak</button>
+           <button class="row-action" data-action="edit" data-id="${e.id}">Ubah</button>
+           <button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button>`
+        : `<button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button>`;
+      return `
+      <tr class="${e.id === lastAddedJadwalId ? 'row-new' : ''}" data-id="${e.id}">
+        <td class="no-col">${e.no}</td>
+        <td>${escapeHtml(e.koordinator)}</td>
+        <td>${escapeHtml(e.opd)}</td>
+        <td class="date-col">${formatWaktu(e.waktu)}</td>
+        <td>${escapeHtml(e.perihal)}</td>
+        <td>${statusBadge(status)}</td>
+        <td class="aksi-col">${actions}</td>
+      </tr>
+    `;
+    }).join('');
+    lastAddedJadwalId = null;
+  }
+
+  // ---------- Render: Agenda ----------
+  function numberedAgenda(){
+    return [...agendaEntries]
+      .sort((a,b)=>{
+        const wa = a.waktu || '';
+        const wb = b.waktu || '';
+        if(wa !== wb) return wa.localeCompare(wb);
+        return (a.createdAt||0) - (b.createdAt||0);
+      })
+      .map((e, idx) => ({...e, no: idx+1}));
+  }
+  function renderAgenda(){
+    const list = numberedAgenda();
+    if(list.length === 0){
+      agendaTableBody.innerHTML = '';
+      agendaEmptyState.hidden = false;
+      return;
+    }
+    agendaEmptyState.hidden = true;
+    agendaTableBody.innerHTML = list.map(e => `
+      <tr data-id="${e.id}">
+        <td class="no-col">${e.no}</td>
+        <td>${escapeHtml(e.koordinator)}</td>
+        <td>${escapeHtml(e.opd)}</td>
+        <td class="date-col">${formatWaktu(e.waktu)}</td>
+        <td>${escapeHtml(e.perihal)}</td>
+        <td class="aksi-col"><button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button></td>
+      </tr>
+    `).join('');
   }
 
   // ---------- Modal ----------
@@ -700,6 +1066,110 @@
     el.addEventListener('change', render);
   });
 
+  // ---------- Modal: Permintaan Jadwal ----------
+  function openJadwalModal(entry){
+    jadwalForm.reset();
+    if(entry){
+      jadwalModalTitle.textContent = 'Ubah Permintaan Jadwal';
+      jadwalEditId.value = entry.id;
+      koordinator.value = entry.koordinator || '';
+      jadwalOpd.value = entry.opd || '';
+      waktu.value = entry.waktu || '';
+      jadwalPerihal.value = entry.perihal || '';
+    }else{
+      jadwalModalTitle.textContent = 'Ajukan Jadwal Baru';
+      jadwalEditId.value = '';
+    }
+    jadwalModalOverlay.hidden = false;
+    koordinator.focus();
+  }
+  function closeJadwalModal(){
+    jadwalModalOverlay.hidden = true;
+  }
+
+  jadwalAddBtn.addEventListener('click', () => openJadwalModal(null));
+  jadwalCloseModalBtn.addEventListener('click', closeJadwalModal);
+  jadwalCancelBtn.addEventListener('click', closeJadwalModal);
+  jadwalModalOverlay.addEventListener('click', (e) => { if(e.target === jadwalModalOverlay) closeJadwalModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !jadwalModalOverlay.hidden) closeJadwalModal(); });
+
+  jadwalForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = jadwalForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    const data = {
+      koordinator: koordinator.value.trim(),
+      opd: jadwalOpd.value.trim(),
+      waktu: waktu.value,
+      perihal: jadwalPerihal.value.trim(),
+    };
+    const isEdit = !!jadwalEditId.value;
+    const editingId = jadwalEditId.value;
+
+    closeJadwalModal();
+    submitBtn.disabled = false;
+
+    try{
+      if(isEdit){
+        lastAddedJadwalId = editingId;
+        await updateJadwal(editingId, data);
+      }else{
+        lastAddedJadwalId = await addJadwal(data);
+      }
+    }catch(err){
+      console.error(err);
+      alert('Gagal menyimpan permintaan jadwal. Cek koneksi internet atau konfigurasi Firebase kamu.');
+    }
+  });
+
+  // ---------- Row actions: Permintaan Jadwal ----------
+  jadwalTableBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const entry = jadwalEntries.find(x => x.id === id);
+    if(!entry) return;
+
+    if(btn.dataset.action === 'edit'){
+      openJadwalModal(entry);
+    }else if(btn.dataset.action === 'delete'){
+      if(confirm(`Hapus permintaan jadwal untuk "${entry.perihal}"? Tindakan ini tidak bisa dibatalkan.`)){
+        try{ await deleteJadwal(id); }
+        catch(err){ console.error(err); alert('Gagal menghapus data. Cek koneksi internet.'); }
+      }
+    }else if(btn.dataset.action === 'approve'){
+      try{ await approveJadwal(entry); }
+      catch(err){ console.error(err); alert('Gagal menyetujui permintaan. Cek koneksi internet.'); }
+    }else if(btn.dataset.action === 'reject'){
+      if(confirm(`Tolak permintaan jadwal untuk "${entry.perihal}"?`)){
+        try{ await rejectJadwal(id); }
+        catch(err){ console.error(err); alert('Gagal menolak permintaan. Cek koneksi internet.'); }
+      }
+    }
+  });
+
+  // ---------- Filters: Permintaan Jadwal ----------
+  [jadwalSearchInput, jadwalStatusFilter].forEach(el => {
+    el.addEventListener('input', renderJadwal);
+    el.addEventListener('change', renderJadwal);
+  });
+
+  // ---------- Row actions: Agenda ----------
+  agendaTableBody.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const entry = agendaEntries.find(x => x.id === id);
+    if(!entry) return;
+
+    if(btn.dataset.action === 'delete'){
+      if(confirm(`Hapus agenda "${entry.perihal}"? Tindakan ini tidak bisa dibatalkan.`)){
+        try{ await deleteAgenda(id); }
+        catch(err){ console.error(err); alert('Gagal menghapus data. Cek koneksi internet.'); }
+      }
+    }
+  });
+
   // ---------- Export ----------
   exportBtn.addEventListener('click', () => {
     const data = getFiltered();
@@ -745,6 +1215,8 @@
 
   // ---------- Init ----------
   listenEntries();
+  listenJadwal();
+  listenAgenda();
 
   // ---------- Service worker (PWA) ----------
   if ('serviceWorker' in navigator) {
