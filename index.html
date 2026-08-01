@@ -321,7 +321,7 @@
 
       <div class="form-grid">
         <label>Penerima Surat
-          <input type="text" id="penerimaSurat" placeholder="Yth. Sekretaris Daerah">
+          <input type="text" id="penerimaSurat" placeholder="Yth. Sekretaris Daerah" list="penerimaList" autocomplete="off">
         </label>
         <label>Nomor Surat
           <input type="text" id="nomorSurat" required>
@@ -333,7 +333,7 @@
           <input type="date" id="tanggalDiterima" required>
         </label>
         <label>Pengirim
-          <input type="text" id="pengirim">
+          <input type="text" id="pengirim" list="opdList" autocomplete="off">
         </label>
       </div>
 
@@ -347,7 +347,7 @@
 
       <div class="form-grid">
         <label>Tujuan
-          <input type="text" id="tujuan" placeholder="Unit/pejabat tujuan disposisi">
+          <input type="text" id="tujuan" placeholder="Unit/pejabat tujuan disposisi" list="opdList" autocomplete="off">
         </label>
         <label>Tanggal Distribusi
           <input type="date" id="tanggalDistribusi">
@@ -363,6 +363,69 @@
         <button type="submit" class="btn btn-primary">Simpan</button>
       </div>
     </form>
+
+    <datalist id="penerimaList">
+      <option value="Sekpri">
+      <option value="Ajudan">
+    </datalist>
+
+    <datalist id="opdList">
+      <option value="Walikota Blitar">
+      <option value="Wakil Walikota Blitar">
+      <option value="Sekretariat Daerah Kota Blitar">
+      <option value="Sekretariat DPRD Kota Blitar">
+      <option value="Inspektorat Kota Blitar">
+      <option value="RSUD Mardiwaluyo">
+      <option value="Dinas Pendidikan">
+      <option value="Dinas Kesehatan">
+      <option value="Dinas Sosial">
+      <option value="Dinas Kependudukan dan Pencatatan Sipil">
+      <option value="Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu">
+      <option value="Dinas Perhubungan">
+      <option value="Dinas Pekerjaan Umum dan Penataan Ruang">
+      <option value="Dinas Perumahan Rakyat dan Kawasan Permukiman">
+      <option value="Dinas Lingkungan Hidup">
+      <option value="Dinas Kebudayaan dan Pariwisata">
+      <option value="Dinas Kepemudaan dan Olahraga">
+      <option value="Dinas Perdagangan dan Perindustrian">
+      <option value="Dinas Ketahanan Pangan dan Pertanian">
+      <option value="Dinas Koperasi, Usaha Kecil Menengah dan Tenaga Kerja">
+      <option value="Dinas Pemberdayaan Perempuan, Perlindungan Anak, Pengendalian Penduduk dan Keluarga Berencana">
+      <option value="Dinas Perpustakaan dan Kearsipan">
+      <option value="Dinas Komunikasi, Informatika dan Statistik">
+      <option value="Badan Perencanaan Pembangunan, Riset, dan Inovasi Daerah">
+      <option value="Badan Pendapatan, Keuangan dan Aset Daerah (BPKAD)">
+      <option value="Badan Kepegawaian dan Pengembangan Sumber Daya Manusia">
+      <option value="Badan Kesatuan Bangsa dan Politik">
+      <option value="Kecamatan Kepanjenkidul">
+      <option value="Kecamatan Sananwetan">
+      <option value="Kecamatan Sukorejo">
+      <option value="Kelurahan Blitar">
+      <option value="Kelurahan Karangsari">
+      <option value="Kelurahan Pakunden">
+      <option value="Kelurahan Sukorejo">
+      <option value="Kelurahan Tanjungsari">
+      <option value="Kelurahan Tlumpu">
+      <option value="Kelurahan Turi">
+      <option value="Kelurahan Bendo">
+      <option value="Kelurahan Kauman">
+      <option value="Kelurahan Kepanjenkidul">
+      <option value="Kelurahan Kepanjenlor">
+      <option value="Kelurahan Ngadirejo">
+      <option value="Kelurahan Sentul">
+      <option value="Kelurahan Tanggung">
+      <option value="Kelurahan Bendogerit">
+      <option value="Kelurahan Gedog">
+      <option value="Kelurahan Karangtengah">
+      <option value="Kelurahan Klampok">
+      <option value="Kelurahan Plosokerep">
+      <option value="Kelurahan Rembang">
+      <option value="Kelurahan Sananwetan">
+      <option value="Badan Pusat Statistik Kota Blitar">
+      <option value="BPJS Ketenagakerjaan">
+      <option value="Korpri Kota Blitar">
+      <option value="Baznas Kota Blitar">
+    </datalist>
   </div>
 </div>
 
