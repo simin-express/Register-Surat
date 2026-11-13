@@ -82,6 +82,17 @@
   .conn-badge.online .conn-dot{background:#2E6B4F;}
   .conn-badge.offline .conn-dot{background:#A63D40;}
 
+  .auth-gate{
+    max-width:440px;margin:10vh auto;padding:28px;
+    background:var(--surface);border:1px solid var(--rule);border-radius:8px;
+    text-align:center;
+  }
+  .auth-gate h1{font-family:var(--font-display);font-size:24px;}
+  .auth-gate p{color:var(--ink-soft);font-size:14px;line-height:1.5;}
+  .auth-message{min-height:20px;color:#A63D40;font-size:13px;}
+  .account-bar{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px;font-size:13px;}
+  .app[hidden],.auth-gate[hidden],.account-bar[hidden]{display:none;}
+
   .stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
   .stat-card{
     flex:1;min-width:160px;
@@ -295,12 +306,24 @@
 </head>
 <body>
 
-<div class="app">
+<section class="auth-gate" id="authGate">
+  <p class="eyebrow">Sekretaris Daerah</p>
+  <h1>Masuk ke Register Surat</h1>
+  <p>Gunakan akun Google yang telah diizinkan untuk mengakses data register.</p>
+  <button id="signInBtn" class="btn btn-primary" type="button">Masuk dengan Google</button>
+  <p class="auth-message" id="authMessage" role="status"></p>
+</section>
+
+<div class="app" id="appShell" hidden>
   <header class="letterhead">
     <p class="eyebrow">Sekretaris Daerah</p>
     <h1>Register Surat Masuk</h1>
     <p class="subtitle">Buku agenda harian — diterima, didisposisikan, didistribusikan.</p>
     <span class="conn-badge" id="connBadge"><span class="conn-dot"></span><span id="connLabel">Menghubungkan…</span></span>
+    <div class="account-bar" id="accountBar" hidden>
+      <span id="accountEmail"></span>
+      <button id="signOutBtn" class="btn btn-ghost" type="button">Keluar</button>
+    </div>
   </header>
 
   <nav class="tabs" id="tabs">
@@ -349,7 +372,7 @@
     </section>
 
     <footer class="app-footer">
-      <span class="shared-note">Data pada register ini <strong>dibagikan</strong> secara real-time — semua orang yang membuka link ini melihat &amp; bisa mengubah data yang sama.</span>
+      <span class="shared-note">Data register dibagikan secara real-time kepada akun Google yang diizinkan.</span>
       <button id="resetBtn" class="link-btn" type="button">Hapus semua data</button>
     </footer>
   </div>
@@ -587,16 +610,28 @@
 
 <!-- Firebase (compat SDK - versi paling gampang dipakai) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 
 <script>
 (function(){
   const COLLECTION = 'surat_masuk';
+  const allowedEmails = new Set(ALLOWED_EMAILS.map(email => email.toLowerCase()));
+  const auth = firebase.auth();
   let entries = [];
   let lastAddedId = null;
+  let listenerStops = [];
+  let authNotice = '';
 
   // ---------- Elements ----------
+  const authGate = document.getElementById('authGate');
+  const appShell = document.getElementById('appShell');
+  const authMessage = document.getElementById('authMessage');
+  const signInBtn = document.getElementById('signInBtn');
+  const signOutBtn = document.getElementById('signOutBtn');
+  const accountBar = document.getElementById('accountBar');
+  const accountEmail = document.getElementById('accountEmail');
   const statsEl = document.getElementById('stats');
   const tableBody = document.getElementById('tableBody');
   const emptyState = document.getElementById('emptyState');
@@ -684,7 +719,7 @@
   }catch(err){ console.warn(err); }
 
   function listenEntries(){
-    db.collection(COLLECTION).onSnapshot((snapshot) => {
+    return db.collection(COLLECTION).onSnapshot((snapshot) => {
       entries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       loadingState.hidden = true;
       connBadge.classList.add('online');
@@ -713,7 +748,7 @@
 
   // ---------- Firestore realtime: Permintaan Jadwal ----------
   function listenJadwal(){
-    db.collection(JADWAL_COLLECTION).onSnapshot((snapshot) => {
+    return db.collection(JADWAL_COLLECTION).onSnapshot((snapshot) => {
       jadwalEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       jadwalLoadingState.hidden = true;
       renderJadwal();
@@ -749,7 +784,7 @@
 
   // ---------- Firestore realtime: Agenda ----------
   function listenAgenda(){
-    db.collection(AGENDA_COLLECTION).onSnapshot((snapshot) => {
+    return db.collection(AGENDA_COLLECTION).onSnapshot((snapshot) => {
       agendaEntries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       agendaLoadingState.hidden = true;
       renderAgenda();
@@ -1213,11 +1248,75 @@
     }
   });
 
-  // ---------- Init ----------
-  listenEntries();
-  listenJadwal();
-  listenAgenda();
+  function stopRealtimeListeners(){
+    listenerStops.forEach(stop => stop());
+    listenerStops = [];
+  }
 
+  signInBtn.addEventListener('click', async () => {
+    signInBtn.disabled = true;
+    authMessage.textContent = '';
+    try{
+      await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+    }catch(err){
+      console.error(err);
+      authNotice = 'Gagal masuk: ' + err.message;
+      authMessage.textContent = authNotice;
+    }finally{
+      signInBtn.disabled = false;
+    }
+  });
+
+  signOutBtn.addEventListener('click', async () => {
+    try{
+      await auth.signOut();
+    }catch(err){
+      console.error(err);
+      alert('Gagal keluar: ' + err.message);
+    }
+  });
+
+  auth.getRedirectResult().catch(err => {
+    console.error(err);
+    authNotice = 'Gagal masuk: ' + err.message;
+    authMessage.textContent = authNotice;
+  });
+
+  auth.onAuthStateChanged((user) => {
+    if(!user){
+      stopRealtimeListeners();
+      appShell.hidden = true;
+      accountBar.hidden = true;
+      authGate.hidden = false;
+      authMessage.textContent = authNotice || 'Silakan masuk dengan akun Google yang diizinkan.';
+      return;
+    }
+
+    const email = (user.email || '').trim().toLowerCase();
+    if(!allowedEmails.has(email)){
+      authNotice = 'Akun ini tidak diizinkan mengakses register.';
+      auth.signOut().catch(err => {
+        console.error(err);
+        authMessage.textContent = 'Gagal memeriksa izin akun: ' + err.message;
+      });
+      return;
+    }
+
+    authNotice = '';
+    authMessage.textContent = '';
+    authGate.hidden = true;
+    appShell.hidden = false;
+    accountBar.hidden = false;
+    accountEmail.textContent = email;
+    if(!listenerStops.length){
+      listenerStops = [listenEntries(), listenJadwal(), listenAgenda()];
+    }
+  }, (err) => {
+    console.error(err);
+    authMessage.textContent = 'Gagal memeriksa sesi login: ' + err.message;
+  });
+
+  // ---------- Init ----------
   // ---------- Service worker (PWA) ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

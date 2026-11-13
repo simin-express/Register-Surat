@@ -1,7 +1,8 @@
-const CACHE_NAME = 'register-surat-v1';
+const CACHE_NAME = 'register-surat-v4';
 const APP_SHELL = [
   './',
   './index.html',
+  './firebase-config.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'

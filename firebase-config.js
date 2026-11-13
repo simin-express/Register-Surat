@@ -1,16 +1,16 @@
-// ====================================================================
-// GANTI nilai-nilai di bawah ini dengan konfigurasi project Firebase
-// kamu sendiri. Cara mendapatkannya ada di README.md bagian
-// "1. Setup Firebase" — cuma perlu copy-paste dari console Firebase.
-// ====================================================================
 const firebaseConfig = {
-  apiKey: "GANTI_DENGAN_API_KEY_KAMU",
-  authDomain: "GANTI_DENGAN_PROJECT_ID.firebaseapp.com",
-  projectId: "GANTI_DENGAN_PROJECT_ID",
-  storageBucket: "GANTI_DENGAN_PROJECT_ID.appspot.com",
-  messagingSenderId: "GANTI_DENGAN_SENDER_ID",
-  appId: "GANTI_DENGAN_APP_ID"
+  apiKey: "AIzaSyAn0PNlM3dpik_zJ91L0hXIi0WSXwqs7E0",
+  authDomain: "register-surat-sekda.firebaseapp.com",
+  projectId: "register-surat-sekda",
+  storageBucket: "register-surat-sekda.firebasestorage.app",
+  messagingSenderId: "79525297224",
+  appId: "1:79525297224:web:3f4ffb06ca732ab46b2c7d"
 };
+
+const ALLOWED_EMAILS = [
+  "maulanaf77@gmail.com",
+  "ajudansekdakotablitar10@gmail.com"
+];
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
