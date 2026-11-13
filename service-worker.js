@@ -1,4 +1,4 @@
-const CACHE_NAME = 'register-surat-v4';
+const CACHE_NAME = 'register-surat-v5';
 const APP_SHELL = [
   './',
   './index.html',

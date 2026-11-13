@@ -1255,14 +1255,22 @@
 
   signInBtn.addEventListener('click', async () => {
     signInBtn.disabled = true;
+    signInBtn.textContent = 'Menghubungkan ke Google…';
     authMessage.textContent = '';
     try{
-      await auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+      await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
     }catch(err){
       console.error(err);
-      authNotice = 'Gagal masuk: ' + err.message;
+      if(err.code === 'auth/popup-closed-by-user'){
+        authNotice = 'Proses masuk dibatalkan. Silakan coba lagi.';
+      }else if(err.code === 'auth/popup-blocked'){
+        authNotice = 'Popup Google diblokir. Izinkan popup untuk situs ini lalu coba lagi.';
+      }else{
+        authNotice = 'Gagal masuk (' + (err.code || 'error') + '): ' + err.message;
+      }
       authMessage.textContent = authNotice;
     }finally{
+      signInBtn.textContent = 'Masuk dengan Google';
       signInBtn.disabled = false;
     }
   });
