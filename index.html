@@ -199,7 +199,8 @@
   tbody tr:nth-child(even){background:#FBF9F4;}
   tbody tr:hover{background:var(--gold-bg);}
   td.no-col{font-family:var(--font-mono);color:var(--ink-soft);}
-  td.nomor-col{font-family:var(--font-mono);white-space:nowrap;}
+  td.nomor-col{overflow-wrap:anywhere;}
+  #dataTable th,#dataTable td{text-align:center;}
   td.date-col{font-family:var(--font-mono);white-space:nowrap;font-size:12.5px;}
   td.aksi-col{white-space:nowrap;}
   .row-action{
@@ -890,7 +891,7 @@
       if(from && (e.tanggalDiterima||'') < from) return false;
       if(to && (e.tanggalDiterima||'') > to) return false;
       if(search){
-        const hay = [e.penerima,e.nomorSurat,e.pengirim,e.perihal,e.tujuan,e.keterangan].join(' ').toLowerCase();
+        const hay = [e.penerimaSurat,e.nomorSurat,e.pengirim,e.perihal,e.tujuan,e.keterangan].join(' ').toLowerCase();
         if(!hay.includes(search)) return false;
       }
       return true;
@@ -936,7 +937,7 @@
 
     tableBody.innerHTML = filtered.map(e => `
       <tr class="${e.id === lastAddedId ? 'row-new' : ''}" data-id="${e.id}">
-        <td>${escapeHtml(e.penerima surat)}</td>
+        <td>${escapeHtml(e.penerimaSurat)}</td>
         <td class="nomor-col">${escapeHtml(e.nomorSurat)}</td>
         <td class="date-col">${formatTanggal(e.tanggalDiterima)}</td>
         <td>${escapeHtml(e.pengirim)}</td>
