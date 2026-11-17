@@ -212,6 +212,7 @@
   tbody tr:hover{background:var(--gold-bg);}
   td.no-col{font-family:var(--font-mono);color:var(--ink-soft);}
   td.nomor-col{overflow-wrap:anywhere;}
+  td.tujuan-col{white-space:pre-line;}
   #dataTable th:nth-child(1),#dataTable td:nth-child(1),
   #dataTable th:nth-child(3),#dataTable td:nth-child(3),
   #dataTable th:nth-child(8),#dataTable td:nth-child(8),
@@ -504,7 +505,7 @@
 
       <div class="form-grid">
         <label>Penerima
-          <input type="text" id="penerima" list="penerimaList" autocomplete="off">
+          <input type="text" id="penerimaSurat" list="penerimaList" autocomplete="off">
         </label>
         <label>Nomor Surat
           <input type="text" id="nomorSurat" required>
@@ -530,7 +531,7 @@
 
       <div class="form-grid">
         <label>Tujuan
-          <input type="text" id="tujuan" placeholder="Unit/pejabat tujuan disposisi" list="opdList" autocomplete="off">
+          <textarea id="tujuan" rows="2" placeholder="Bisa tulis beberapa tujuan, pisahkan dengan koma atau baris baru"></textarea>
         </label>
         <label>Tanggal Distribusi
           <input type="date" id="tanggalDistribusi">
@@ -715,7 +716,7 @@
   const entryForm = document.getElementById('entryForm');
   const editId = document.getElementById('editId');
 
-  const penerima = document.getElementById('penerimaSurat');
+  const penerimaSurat = document.getElementById('penerimaSurat');
   const nomorSurat = document.getElementById('nomorSurat');
   const tanggalDiterima = document.getElementById('tanggalDiterima');
   const pengirim = document.getElementById('pengirim');
@@ -971,7 +972,7 @@
         <td>${escapeHtml(e.pengirim)}</td>
         <td>${escapeHtml(e.perihal)}</td>
         <td>${escapeHtml(e.isiDisposisi)}</td>
-        <td>${escapeHtml(e.tujuan)}</td>
+        <td class="tujuan-col">${escapeHtml(e.tujuan)}</td>
         <td class="date-col">${formatTanggal(e.tanggalDistribusi)}</td>
         <td>${escapeHtml(e.keterangan)}</td>
         <td class="aksi-col">
