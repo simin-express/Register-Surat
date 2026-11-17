@@ -40,7 +40,10 @@
     font-family:var(--font-body);
     -webkit-font-smoothing:antialiased;
   }
-  .app{max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
+  .app{max-width:1180px;height:100vh;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;}
+  #viewSurat:not([hidden]){display:flex;flex:1;flex-direction:column;min-height:0;}
+  #viewSurat[hidden]{display:none;}
+  #viewSurat .stats,#viewSurat .toolbar,#viewSurat .app-footer{flex-shrink:0;}
 
   .letterhead{
     border-top:3px double var(--ink);
@@ -173,9 +176,10 @@
     background:var(--surface);
     border:1px solid var(--rule);
     border-radius:8px;
-    overflow-x:auto;
+    overflow:auto;
     -webkit-overflow-scrolling:touch;
   }
+  #viewSurat .table-wrap{flex:1;min-height:0;}
   table{border-collapse:collapse;width:100%;min-width:1150px;}
   thead th{
     position:sticky;top:0;
@@ -200,7 +204,10 @@
   tbody tr:hover{background:var(--gold-bg);}
   td.no-col{font-family:var(--font-mono);color:var(--ink-soft);}
   td.nomor-col{overflow-wrap:anywhere;}
-  #dataTable th,#dataTable td{text-align:center;}
+  #dataTable th:nth-child(1),#dataTable td:nth-child(1),
+  #dataTable th:nth-child(3),#dataTable td:nth-child(3),
+  #dataTable th:nth-child(8),#dataTable td:nth-child(8),
+  #dataTable th:nth-child(10),#dataTable td:nth-child(10){text-align:center;}
   td.date-col{font-family:var(--font-mono);white-space:nowrap;font-size:12.5px;}
   td.aksi-col{white-space:nowrap;}
   .row-action{
@@ -371,7 +378,7 @@
       <table id="dataTable">
         <thead>
           <tr>
-            <th>Penerima Surat</th>
+            <th>Penerima</th>
             <th>Nomor Surat</th>
             <th>Tgl Diterima</th>
             <th>Pengirim</th>
