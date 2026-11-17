@@ -370,7 +370,7 @@
       <table id="dataTable">
         <thead>
           <tr>
-            <th>Penerima</th>
+            <th>Penerima Surat</th>
             <th>Nomor Surat</th>
             <th>Tgl Diterima</th>
             <th>Pengirim</th>
@@ -475,7 +475,7 @@
 
       <div class="form-grid">
         <label>Penerima
-          <input type="text" id="penerimaSurat" list="penerimaList" autocomplete="off">
+          <input type="text" id="penerima" list="penerimaList" autocomplete="off">
         </label>
         <label>Nomor Surat
           <input type="text" id="nomorSurat" required>
@@ -936,7 +936,7 @@
 
     tableBody.innerHTML = filtered.map(e => `
       <tr class="${e.id === lastAddedId ? 'row-new' : ''}" data-id="${e.id}">
-        <td>${escapeHtml(e.penerima)}</td>
+        <td>${escapeHtml(e.penerima surat)}</td>
         <td class="nomor-col">${escapeHtml(e.nomorSurat)}</td>
         <td class="date-col">${formatTanggal(e.tanggalDiterima)}</td>
         <td>${escapeHtml(e.pengirim)}</td>
