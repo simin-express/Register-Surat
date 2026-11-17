@@ -526,9 +526,10 @@
     <datalist id="opdList">
       <option value="Walikota Blitar">
       <option value="Wakil Walikota Blitar">
-      <option value="Sekretariat Daerah Kota Blitar">
-      <option value="Sekretariat DPRD Kota Blitar">
-      <option value="Inspektorat Kota Blitar">
+      <option value="Sekretariat Daerah">
+      <option value="Sekretariat DPRD">
+      <option value="Inspektorat Daerah">
+      <option value="Satuan Polisi Pamong Praja">
       <option value="RSUD Mardiwaluyo">
       <option value="Dinas Pendidikan">
       <option value="Dinas Kesehatan">
@@ -548,9 +549,10 @@
       <option value="Dinas Perpustakaan dan Kearsipan">
       <option value="Dinas Komunikasi, Informatika dan Statistik">
       <option value="Badan Perencanaan Pembangunan, Riset, dan Inovasi Daerah">
-      <option value="Badan Pendapatan, Keuangan dan Aset Daerah (BPKAD)">
+      <option value="Badan Pendapatan, Keuangan dan Aset Daerah">
       <option value="Badan Kepegawaian dan Pengembangan Sumber Daya Manusia">
       <option value="Badan Kesatuan Bangsa dan Politik">
+      <option value="Badan Penanggulangan Bencana Daerah">
       <option value="Kecamatan Kepanjenkidul">
       <option value="Kecamatan Sananwetan">
       <option value="Kecamatan Sukorejo">
@@ -577,8 +579,11 @@
       <option value="Kelurahan Sananwetan">
       <option value="Badan Pusat Statistik Kota Blitar">
       <option value="BPJS Ketenagakerjaan">
+      <option value="BPJS Kesehatan">
       <option value="Korpri Kota Blitar">
       <option value="Baznas Kota Blitar">
+      <option value="BPK Provinsi Jatim">
+      <option value="BPKP Provinsi Jatim">
     </datalist>
   </div>
 </div>
@@ -610,9 +615,8 @@
         <label>Koordinator
           <select id="koordinator" required>
             <option value="">Pilih koordinator</option>
-            <option value="Cindy">Cindy</option>
-            <option value="Firman">Firman</option>
-            <option value="Rifan">Rifan</option>
+            <option value="Sekpri">Sekpri</option>
+            <option value="Ajudan">Ajudan</option>
           </select>
         </label>
         <label>OPD
@@ -932,7 +936,6 @@
 
     tableBody.innerHTML = filtered.map(e => `
       <tr class="${e.id === lastAddedId ? 'row-new' : ''}" data-id="${e.id}">
-        <td class="no-col">${e.no}</td>
         <td>${escapeHtml(e.penerimaSurat)}</td>
         <td class="nomor-col">${escapeHtml(e.nomorSurat)}</td>
         <td class="date-col">${formatTanggal(e.tanggalDiterima)}</td>
@@ -1286,8 +1289,6 @@
     }
     const sorted = [...data].sort((a,b) => a.no - b.no);
     const rows = sorted.map(e => ({
-      'No': e.no,
-      'Penerima Surat': e.penerimaSurat,
       'Nomor Surat': e.nomorSurat,
       'Tanggal Diterima': formatTanggal(e.tanggalDiterima),
       'Pengirim': e.pengirim,
