@@ -40,21 +40,22 @@
     font-family:var(--font-body);
     -webkit-font-smoothing:antialiased;
   }
-  .app{max-width:1180px;height:100vh;margin:0 auto;padding:12px 20px 14px;display:flex;flex-direction:column;}
+  .app{width:100%;height:100vh;margin:0;padding:12px clamp(12px,2vw,28px) 14px;display:flex;flex-direction:column;}
   #viewSurat:not([hidden]){display:flex;flex:1;flex-direction:column;min-height:0;}
   #viewSurat[hidden]{display:none;}
-  #viewSurat .stats,#viewSurat .toolbar,#viewSurat .app-footer{flex-shrink:0;}
+  #viewSurat .stats,#viewSurat .toolbar{flex-shrink:0;}
 
   .letterhead{
+    position:relative;
     border-top:3px double var(--ink);
     border-bottom:1px solid var(--rule-strong);
     padding:8px 4px 10px;
     margin-bottom:12px;
-    text-align:left;
+    text-align:center;
   }
   .app-topbar{
-    display:flex;align-items:center;gap:10px;
-    margin-bottom:5px;
+    position:absolute;top:8px;right:4px;
+    display:flex;flex-direction:column;align-items:flex-end;gap:4px;
   }
   .eyebrow{
     margin:0 0 2px;
@@ -97,7 +98,7 @@
   .auth-gate h1{font-family:var(--font-display);font-size:24px;}
   .auth-gate p{color:var(--ink-soft);font-size:14px;line-height:1.5;}
   .auth-message{min-height:20px;color:#A63D40;font-size:13px;}
-  .account-bar{display:flex;justify-content:flex-start;align-items:center;gap:8px;margin:0;font-size:12px;}
+  .account-bar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:0;font-size:12px;}
   .app[hidden],.auth-gate[hidden],.account-bar[hidden]{display:none;}
 
   .stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
@@ -259,7 +260,7 @@
   }
   .app-footer .shared-note{color:#8B6A22;}
 
-  .tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;border-bottom:1px solid var(--rule-strong);}
+  .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;border-bottom:1px solid var(--rule-strong);}
   .tab-btn{
     font-family:var(--font-body);font-weight:600;font-size:13.5px;
     padding:10px 16px;border:none;background:none;cursor:pointer;
@@ -325,10 +326,14 @@
 
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 
+  @media (max-width:860px){
+    .letterhead{display:flex;flex-direction:column;align-items:center;}
+    .app-topbar{position:static;align-self:stretch;align-items:flex-end;gap:3px;margin-bottom:5px;}
+  }
+
   @media (max-width:640px){
     .app{padding:8px 10px 10px;}
     .letterhead{padding:6px 2px 8px;margin-bottom:8px;}
-    .app-topbar{gap:6px;margin-bottom:3px;}
     .conn-badge{font-size:10px;}
     .account-bar{gap:5px;font-size:11px;}
     #viewSurat .toolbar{grid-template-columns:1fr;}
@@ -360,11 +365,11 @@
 <div class="app" id="appShell" hidden>
   <header class="letterhead">
     <div class="app-topbar">
-      <span class="conn-badge" id="connBadge"><span class="conn-dot"></span><span id="connLabel">Menghubungkan…</span></span>
       <div class="account-bar" id="accountBar" hidden>
         <span id="accountEmail"></span>
         <button id="signOutBtn" class="btn btn-ghost" type="button">Keluar</button>
       </div>
+      <span class="conn-badge" id="connBadge"><span class="conn-dot"></span><span id="connLabel">Menghubungkan…</span></span>
     </div>
     <p class="eyebrow">Sekretaris Daerah</p>
     <h1>Register Surat Masuk</h1>
@@ -415,9 +420,6 @@
       <p id="emptyState" class="empty-state" hidden>Belum ada surat tercatat. Klik &ldquo;Catat Surat&rdquo; untuk mulai.</p>
     </section>
 
-    <footer class="app-footer">
-      <span class="shared-note">Data register dibagikan secara real-time kepada akun Google yang diizinkan.</span>
-    </footer>
   </div>
 
   <div class="view" id="viewJadwal" hidden>
