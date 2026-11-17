@@ -209,6 +209,22 @@
   }
   .row-action:hover{color:var(--gold-dark);}
   .row-action.danger:hover{color:#A63D40;}
+  .icon-action{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;padding:0;margin-right:2px;
+    background:none;border:1px solid transparent;border-radius:5px;
+    color:var(--ink-soft);cursor:pointer;
+    transition:background .15s ease,color .15s ease,border-color .15s ease;
+  }
+  .icon-action:last-child{margin-right:0;}
+  .aksi-group{display:inline-flex;align-items:center;gap:2px;}
+  .icon-action:hover{background:var(--gold-bg);color:var(--gold-dark);border-color:var(--rule-strong);}
+  .icon-action.danger:hover{background:#F5E2E2;color:#A63D40;border-color:#E4BFC0;}
+  .icon-action svg{display:block;pointer-events:none;}
+  .detail-list{margin:0 0 4px;display:grid;grid-template-columns:150px 1fr;gap:12px 16px;font-size:13.5px;line-height:1.5;}
+  .detail-list dt{font-weight:600;color:var(--ink-soft);}
+  .detail-list dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;}
+  .detail-list dd.mono{font-family:var(--font-mono);font-size:13px;}
   .empty-state{
     text-align:center;padding:40px 20px;color:var(--ink-soft);font-style:italic;
     font-family:var(--font-display);
@@ -298,6 +314,8 @@
     .toolbar-row.toolbar-actions{justify-content:stretch;}
     .toolbar-row.toolbar-actions .btn{flex:1;}
     .modal{padding:18px;}
+    .detail-list{grid-template-columns:1fr;gap:2px;}
+    .detail-list dd{margin-bottom:10px;}
   }
   @media (prefers-reduced-motion: reduce){
     *{animation:none !important;transition:none !important;}
@@ -352,8 +370,7 @@
       <table id="dataTable">
         <thead>
           <tr>
-            <th>No</th>
-            <th>Penerima Surat</th>
+            <th>Penerima</th>
             <th>Nomor Surat</th>
             <th>Tgl Diterima</th>
             <th>Pengirim</th>
@@ -373,7 +390,6 @@
 
     <footer class="app-footer">
       <span class="shared-note">Data register dibagikan secara real-time kepada akun Google yang diizinkan.</span>
-      <button id="resetBtn" class="link-btn" type="button">Hapus semua data</button>
     </footer>
   </div>
 
@@ -567,6 +583,19 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="previewModalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle">
+    <div class="modal-head">
+      <h2 id="previewModalTitle">Detail Surat</h2>
+      <button id="previewCloseBtn" class="icon-btn" type="button" aria-label="Tutup">✕</button>
+    </div>
+    <dl class="detail-list" id="previewBody"></dl>
+    <div class="modal-actions">
+      <button type="button" id="previewDoneBtn" class="btn btn-ghost">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="jadwalModalOverlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="jadwalModalTitle">
     <div class="modal-head">
@@ -645,7 +674,6 @@
 
   const addBtn = document.getElementById('addBtn');
   const exportBtn = document.getElementById('exportBtn');
-  const resetBtn = document.getElementById('resetBtn');
 
   const modalOverlay = document.getElementById('modalOverlay');
   const modalTitle = document.getElementById('modalTitle');
@@ -663,6 +691,20 @@
   const tujuan = document.getElementById('tujuan');
   const tanggalDistribusi = document.getElementById('tanggalDistribusi');
   const keterangan = document.getElementById('keterangan');
+
+  const previewModalOverlay = document.getElementById('previewModalOverlay');
+  const previewBody = document.getElementById('previewBody');
+  const previewCloseBtn = document.getElementById('previewCloseBtn');
+  const previewDoneBtn = document.getElementById('previewDoneBtn');
+
+  // ---------- Ikon aksi (SVG inline) ----------
+  const svgIcon = (inner) =>
+    `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`;
+  const ICONS = {
+    edit: svgIcon('<path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>'),
+    view: svgIcon('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
+    trash: svgIcon('<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>')
+  };
 
   // ---------- Tabs ----------
   const viewSurat = document.getElementById('viewSurat');
@@ -901,8 +943,9 @@
         <td class="date-col">${formatTanggal(e.tanggalDistribusi)}</td>
         <td>${escapeHtml(e.keterangan)}</td>
         <td class="aksi-col">
-          <button class="row-action" data-action="edit" data-id="${e.id}">Ubah</button>
-          <button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button>
+          <button class="icon-action" data-action="edit" data-id="${e.id}" title="Ubah" aria-label="Ubah surat">${ICONS.edit}</button>
+          <button class="icon-action" data-action="view" data-id="${e.id}" title="Lihat detail" aria-label="Lihat detail surat">${ICONS.view}</button>
+          <button class="icon-action danger" data-action="delete" data-id="${e.id}" title="Hapus" aria-label="Hapus surat">${ICONS.trash}</button>
         </td>
       </tr>
     `).join('');
@@ -958,9 +1001,9 @@
       const actions = status === 'menunggu'
         ? `<button class="row-action" data-action="approve" data-id="${e.id}">Setujui</button>
            <button class="row-action danger" data-action="reject" data-id="${e.id}">Tolak</button>
-           <button class="row-action" data-action="edit" data-id="${e.id}">Ubah</button>
-           <button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button>`
-        : `<button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button>`;
+           <button class="icon-action" data-action="edit" data-id="${e.id}" title="Ubah" aria-label="Ubah permintaan jadwal">${ICONS.edit}</button>
+           <button class="icon-action danger" data-action="delete" data-id="${e.id}" title="Hapus" aria-label="Hapus permintaan jadwal">${ICONS.trash}</button>`
+        : `<button class="icon-action danger" data-action="delete" data-id="${e.id}" title="Hapus" aria-label="Hapus permintaan jadwal">${ICONS.trash}</button>`;
       return `
       <tr class="${e.id === lastAddedJadwalId ? 'row-new' : ''}" data-id="${e.id}">
         <td class="no-col">${e.no}</td>
@@ -969,7 +1012,7 @@
         <td class="date-col">${formatWaktu(e.waktu)}</td>
         <td>${escapeHtml(e.perihal)}</td>
         <td>${statusBadge(status)}</td>
-        <td class="aksi-col">${actions}</td>
+        <td class="aksi-col"><span class="aksi-group">${actions}</span></td>
       </tr>
     `;
     }).join('');
@@ -1002,7 +1045,7 @@
         <td>${escapeHtml(e.opd)}</td>
         <td class="date-col">${formatWaktu(e.waktu)}</td>
         <td>${escapeHtml(e.perihal)}</td>
-        <td class="aksi-col"><button class="row-action danger" data-action="delete" data-id="${e.id}">Hapus</button></td>
+        <td class="aksi-col"><button class="icon-action danger" data-action="delete" data-id="${e.id}" title="Hapus" aria-label="Hapus agenda">${ICONS.trash}</button></td>
       </tr>
     `).join('');
   }
@@ -1033,6 +1076,33 @@
   function closeModal(){
     modalOverlay.hidden = true;
   }
+
+  // ---------- Preview surat ----------
+  function openPreview(entry){
+    const rows = [
+      ['Penerima Surat', entry.penerimaSurat, false],
+      ['Nomor Surat', entry.nomorSurat, true],
+      ['Tanggal Diterima', formatTanggal(entry.tanggalDiterima), false],
+      ['Pengirim', entry.pengirim, false],
+      ['Perihal', entry.perihal, false],
+      ['Isi Disposisi', entry.isiDisposisi, false],
+      ['Tujuan', entry.tujuan, false],
+      ['Tanggal Distribusi', formatTanggal(entry.tanggalDistribusi), false],
+      ['Keterangan', entry.keterangan, false],
+    ];
+    previewBody.innerHTML = rows.map(([label, value, mono]) =>
+      `<dt>${label}</dt><dd${mono ? ' class="mono"' : ''}>${escapeHtml(value) || '—'}</dd>`
+    ).join('');
+    previewModalOverlay.hidden = false;
+    previewDoneBtn.focus();
+  }
+  function closePreview(){
+    previewModalOverlay.hidden = true;
+  }
+  previewCloseBtn.addEventListener('click', closePreview);
+  previewDoneBtn.addEventListener('click', closePreview);
+  previewModalOverlay.addEventListener('click', (e) => { if(e.target === previewModalOverlay) closePreview(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !previewModalOverlay.hidden) closePreview(); });
 
   addBtn.addEventListener('click', () => openModal(null));
   closeModalBtn.addEventListener('click', closeModal);
@@ -1087,6 +1157,8 @@
 
     if(btn.dataset.action === 'edit'){
       openModal(entry);
+    }else if(btn.dataset.action === 'view'){
+      openPreview(entry);
     }else if(btn.dataset.action === 'delete'){
       if(confirm(`Hapus surat nomor "${entry.nomorSurat}"? Tindakan ini tidak bisa dibatalkan.`)){
         try{ await deleteEntry(id); }
@@ -1232,20 +1304,6 @@
     const today = new Date();
     const fname = `Register-Surat-Masuk-Setda-${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}.xlsx`;
     XLSX.writeFile(wb, fname);
-  });
-
-  // ---------- Reset ----------
-  resetBtn.addEventListener('click', async () => {
-    if(!confirm('Hapus SEMUA data surat (untuk semua orang)? Tindakan ini tidak bisa dibatalkan.')) return;
-    try{
-      const snapshot = await db.collection(COLLECTION).get();
-      const batch = db.batch();
-      snapshot.docs.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
-    }catch(err){
-      console.error(err);
-      alert('Gagal menghapus data. Cek koneksi internet.');
-    }
   });
 
   function stopRealtimeListeners(){
