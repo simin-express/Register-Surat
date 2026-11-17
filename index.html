@@ -323,6 +323,16 @@
     padding:9px 10px;border:1px solid var(--rule-strong);border-radius:5px;background:var(--paper);
     resize:vertical;
   }
+  .destination-picker{display:flex;flex-direction:column;gap:6px;}
+  .destination-input-row{display:flex;gap:6px;}
+  .destination-input-row input{min-width:0;flex:1;}
+  .destination-input-row .btn{flex-shrink:0;padding:7px 10px;font-size:12px;}
+  .destination-chips{display:flex;flex-wrap:wrap;gap:5px;}
+  .destination-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border:1px solid var(--rule-strong);border-radius:14px;background:var(--paper);font-size:12px;font-weight:400;color:var(--ink);}
+  .destination-chip button{padding:0;border:0;background:none;color:var(--ink-soft);cursor:pointer;font:inherit;line-height:1;}
+  .destination-chip button:hover{color:#A63D40;}
+  td.tujuan-col{white-space:pre-line;}
+  .tujuan-more{font-size:11px;padding:0 2px;}
   .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:6px;}
 
   :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
@@ -531,7 +541,14 @@
 
       <div class="form-grid">
         <label>Tujuan
-          <textarea id="tujuan" rows="2" placeholder="Bisa tulis beberapa tujuan, pisahkan dengan koma atau baris baru"></textarea>
+          <div class="destination-picker">
+            <div class="destination-input-row">
+              <input type="text" id="tujuanInput" list="opdList" autocomplete="off" placeholder="Pilih atau ketik tujuan">
+              <button type="button" class="btn btn-ghost" id="addTujuanBtn">Tambah</button>
+            </div>
+            <div class="destination-chips" id="tujuanChips" aria-live="polite"></div>
+            <textarea id="tujuan" hidden></textarea>
+          </div>
         </label>
         <label>Tanggal Distribusi
           <input type="date" id="tanggalDistribusi">
@@ -723,6 +740,11 @@
   const perihal = document.getElementById('perihal');
   const isiDisposisi = document.getElementById('isiDisposisi');
   const tujuan = document.getElementById('tujuan');
+  const tujuanInput = document.getElementById('tujuanInput');
+  const addTujuanBtn = document.getElementById('addTujuanBtn');
+  const tujuanChips = document.getElementById('tujuanChips');
+  const tujuanOptions = new Set(Array.from(document.querySelectorAll('#opdList option'), option => option.value.trim().toLowerCase()));
+  let selectedTujuan = [];
   const tanggalDistribusi = document.getElementById('tanggalDistribusi');
   const keterangan = document.getElementById('keterangan');
 
@@ -885,6 +907,39 @@
     if(!str) return '';
     return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
+  function parseTujuan(value){
+    return String(value || '').split(/\r?\n/).flatMap(line => {
+      const item = line.trim();
+      if(!item) return [];
+      if(tujuanOptions.has(item.toLowerCase())) return [item];
+      return item.split(',').map(value => value.trim()).filter(Boolean);
+    });
+  }
+  function renderTujuanChips(){
+    tujuan.value = selectedTujuan.join('\n');
+    tujuanChips.innerHTML = selectedTujuan.map((item, index) => `
+      <span class="destination-chip">${escapeHtml(item)}
+        <button type="button" data-remove-tujuan="${index}" aria-label="Hapus tujuan ${escapeHtml(item)}">×</button>
+      </span>
+    `).join('');
+  }
+  function addTujuan(){
+    const value = tujuanInput.value.trim();
+    if(!value) return;
+    if(!selectedTujuan.some(item => item.toLowerCase() === value.toLowerCase())){
+      selectedTujuan.push(value);
+      renderTujuanChips();
+    }
+    tujuanInput.value = '';
+    tujuanInput.focus();
+  }
+  function renderTujuanPreview(entry){
+    const values = parseTujuan(entry.tujuan);
+    if(values.length === 0) return '—';
+    const preview = values.slice(0, 2).map(escapeHtml).join('<br>');
+    if(values.length <= 2) return preview;
+    return `${preview}<br><button type="button" class="link-btn tujuan-more" data-action="view" data-id="${escapeHtml(entry.id)}">dst.</button>`;
+  }
   function formatWaktu(val){
     if(!val) return '—';
     const d = new Date(val);
@@ -972,7 +1027,7 @@
         <td>${escapeHtml(e.pengirim)}</td>
         <td>${escapeHtml(e.perihal)}</td>
         <td>${escapeHtml(e.isiDisposisi)}</td>
-        <td class="tujuan-col">${escapeHtml(e.tujuan)}</td>
+        <td class="tujuan-col">${renderTujuanPreview(e)}</td>
         <td class="date-col">${formatTanggal(e.tanggalDistribusi)}</td>
         <td>${escapeHtml(e.keterangan)}</td>
         <td class="aksi-col">
@@ -1086,6 +1141,9 @@
   // ---------- Modal ----------
   function openModal(entry){
     entryForm.reset();
+    tujuanInput.value = '';
+    selectedTujuan = parseTujuan(entry ? entry.tujuan : '');
+    renderTujuanChips();
     if(entry){
       modalTitle.textContent = 'Ubah Surat';
       editId.value = entry.id;
@@ -1095,7 +1153,6 @@
       pengirim.value = entry.pengirim || '';
       perihal.value = entry.perihal || '';
       isiDisposisi.value = entry.isiDisposisi || '';
-      tujuan.value = entry.tujuan || '';
       tanggalDistribusi.value = entry.tanggalDistribusi || '';
       keterangan.value = entry.keterangan || '';
     }else{
@@ -1138,6 +1195,19 @@
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && !previewModalOverlay.hidden) closePreview(); });
 
   addBtn.addEventListener('click', () => openModal(null));
+  addTujuanBtn.addEventListener('click', addTujuan);
+  tujuanInput.addEventListener('keydown', (event) => {
+    if(event.key === 'Enter'){
+      event.preventDefault();
+      addTujuan();
+    }
+  });
+  tujuanChips.addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-remove-tujuan]');
+    if(!button) return;
+    selectedTujuan.splice(Number(button.dataset.removeTujuan), 1);
+    renderTujuanChips();
+  });
   closeModalBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
   modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
